@@ -19,7 +19,7 @@ npm i boids-html-element
 </custom-element-demo>
 ```
 -->
+
 ```html
-<other-element></other-element>
-<my-element></my-element>
+<flocking-boids></flocking-boids>
 ```
