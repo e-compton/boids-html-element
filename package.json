@@ -10,6 +10,10 @@
   },
   "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/e-compton/boids-html-element.git"
+  },
   "dependencies": {
     "@types/jest": "^26.0.13",
     "typescript": "^4.0.2"
