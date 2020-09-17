@@ -5,12 +5,19 @@ import BoidWorker from "worker-loader!./src/worker";
 
 export class Boids extends HTMLElement {
     worker: Worker
+    _isRunning = true;
+    startStop: HTMLButtonElement;
 
   constructor() {
     super();
     this.worker = new BoidWorker();
 
     const shadow = this.attachShadow({ mode: 'open' });
+
+    this.startStop = document.createElement('button');
+    this.startStop.innerHTML = 'pause';
+    this.startStop.addEventListener('click', () => this.isRunning = !this.isRunning, false);
+    shadow.appendChild(this.startStop);
 
     const canvas = document.createElement('canvas');
     canvas.setAttribute('width', '750');
@@ -26,6 +33,19 @@ export class Boids extends HTMLElement {
     });
   }
 
+  set isRunning(value: boolean) {
+    this._isRunning = value;
+    if (value) {
+      this.startStop.innerHTML = 'pause';
+    } else {
+      this.startStop.innerHTML = 'play';
+    }
+  }
+
+  get isRunning(): boolean {
+    return this._isRunning;
+  }
+
   private run(
     canvas: HTMLCanvasElement,
     ctx: CanvasRenderingContext2D,
@@ -34,6 +54,12 @@ export class Boids extends HTMLElement {
   ): void {
     const now = new Date().getTime();
     const dt = Math.min(now - lastRender, 60);
+
+    if (!this.isRunning) {
+      requestAnimationFrame(() => this.run(canvas, ctx, boids, now));
+      return;
+    }
+
     this.worker.postMessage({
         boids,
         dt,
