@@ -1,8 +1,8 @@
 import "./styles.css";
-import { Boid } from "./lib/types";
-import create from "./lib/create";
-import render from "./lib/render";
-import act from "./lib/act";
+import { Boid } from "./src/types";
+import create from "./src/create";
+import render from "./src/render";
+import act from "./src/act";
 
 export class Boids extends HTMLElement {
 

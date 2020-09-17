@@ -9,7 +9,6 @@ export default function act(
   height: number
 ): Boid[] {
   const kdtree = create<Boid>(boids, boid => boid.position);
-  console.log('tick', delta);
   return boids.map((currentBoid) => updateBoid(kdtree, currentBoid, delta, width, height));
 }
 
