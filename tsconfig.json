@@ -11,7 +11,10 @@
       "dom",
       "es6"
     ],
-    "declaration": true
+    "typeRoots": [
+      "node_modules/@types",
+      "typings"
+    ]
   },
   "include": [
     "src"

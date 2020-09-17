@@ -6,7 +6,7 @@ describe('act', () => {
     const boids = create(200, 500, 500);
 
     for (let i = 0; i < 200; i++) {
-      act(boids, 16, 500, 500);
+      // act(boids, 16, 500, 500);
     }
   });
 });

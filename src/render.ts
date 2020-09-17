@@ -1,4 +1,5 @@
 import { Boid } from "./types";
+import { BufferedBoids } from './create';
 import {
   Vector,
   angleOfVector,
@@ -16,10 +17,16 @@ const triangle: Vector[] = [
 export default function render(
   canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
-  boids: Boid[]
+  boids: BufferedBoids
 ): void {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  boids.forEach((boid) => drawBoid(ctx, boid));
+  
+  for (let i = 0; i < boids.positionsX.length; i++) {
+    drawBoid(ctx, {
+      position: [boids.positionsX[i], boids.positionsY[i]],
+      velocity: [boids.velocitiesX[i], boids.velocitiesY[i]]
+    });
+  }
 }
 
 function drawBoid(ctx: CanvasRenderingContext2D, boid: Boid) {

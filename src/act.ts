@@ -1,25 +1,34 @@
 import { vadd, vscale, vsub, vclamp, vmagnitude2, Vector } from "./algebra";
 import { Boid } from "./types";
-import { create, neighbourhood, Node } from './kd-tree';
+import { iterativeCreate, iterativeNeighbourhood, Node } from './kd-tree';
+import { BufferedBoids, toBoidsArray, updateBuffer, toBoid } from "./create";
 
 export default function act(
-  boids: Boid[],
+  bufferedBoids: BufferedBoids,
   delta: number,
   width: number,
   height: number
-): Boid[] {
-  const kdtree = create<Boid>(boids, boid => boid.position);
-  return boids.map((currentBoid) => updateBoid(kdtree, currentBoid, delta, width, height));
+): BufferedBoids {
+  const boids = toBoidsArray(bufferedBoids);
+  const boidIndexes = [...Array(boids.length).keys()];
+  const kdtree = iterativeCreate<number>(boidIndexes, getLocation);
+  const newBoids = boids.map((currentBoid) => updateBoid(bufferedBoids, kdtree, currentBoid, delta, width, height));
+  updateBuffer(bufferedBoids, newBoids);
+  return bufferedBoids;
+
+  function getLocation(index: number) {
+    return <Vector>[bufferedBoids.positionsX[index], bufferedBoids.positionsY[index]];
+  }
 }
 
 const NEIGHBOUGH_DISTANCE = 30;
 const COLLISION_DISTANCE_SQUARED = 10 ** 2;
 
-function updateBoid(boidTree: Node<Boid>, currentBoid: Boid, delta, width, height) {
-  const neighbours = neighbourhood(boidTree, currentBoid.position, NEIGHBOUGH_DISTANCE);
+function updateBoid(buffer: BufferedBoids, boidTree: Node<number>, currentBoid: Boid, delta, width, height) {
+  const neighbourIndexes = iterativeNeighbourhood(boidTree, currentBoid.position, NEIGHBOUGH_DISTANCE);
+  const neighbours = neighbourIndexes.map(index => toBoid(buffer, index));
   
   return {
-    id: currentBoid.id,
     position: vadd(currentBoid.position, vscale(currentBoid.velocity, delta / 4)),
     velocity: vclamp(
       vadd(

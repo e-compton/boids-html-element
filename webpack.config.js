@@ -20,6 +20,10 @@ module.exports = {
     rules: [
       { test: /\.tsx?$/, loader: 'ts-loader' },
       {
+        test: /\.worker\.js$/,
+        use: { loader: 'worker-loader' }
+      },
+      {
         test: /\.css$/i,
         use: ['style-loader', 'css-loader'],
       }

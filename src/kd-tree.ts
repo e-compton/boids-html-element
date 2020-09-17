@@ -9,7 +9,7 @@ export interface Node<V> {
 
 export function create<V>(
   pointsList: V[],
-  getLocation: (V) => Vector,
+  getLocation: (item: V) => Vector,
   depth = 0
 ): Node<V> {
   if (pointsList.length === 0) {
@@ -39,6 +39,68 @@ export function create<V>(
   };
 }
 
+export function iterativeCreate<V>(
+  pointsList: V[],
+  getLocation: (item: V) => Vector,
+): Node<V> {
+  const depthStack: number[] = [0];
+  const pointsListStack: V[][] = [pointsList];
+  const isLeftStack: boolean[] = [];
+  const parentStack: Node<V>[] = [];
+  let rootNode;
+
+  while (pointsListStack.length > 0) {
+    const currentPointsList = pointsListStack.pop();
+    const currentDepth = depthStack.pop();
+    const currentlyLeft = isLeftStack.pop();
+    const currentParent = parentStack.pop();
+    const axis = currentDepth % 2;
+
+    const median = medianOfMedians<V>(
+      currentPointsList,
+      (value) => getLocation(value)[axis]
+    );
+
+    const medianLocation = getLocation(median);
+
+    const newNode = <Node<V>>{
+      location: medianLocation,
+      value: median,
+      leftChild: null,
+      rightChild: null
+    };
+
+    if (currentDepth === 0) {
+      rootNode = newNode;
+    } else if (currentlyLeft) {
+      currentParent.leftChild = newNode;
+    } else {
+      currentParent.rightChild = newNode;
+    }
+
+    const leftPoints = currentPointsList.filter(
+      (point) => getLocation(point)[axis] < medianLocation[axis]
+    );
+    if (leftPoints.length > 0) {
+      pointsListStack.push(leftPoints);
+      depthStack.push(currentDepth + 1);
+      isLeftStack.push(true);
+      parentStack.push(newNode);
+    }
+    const rightPoints = currentPointsList.filter(
+      (point) => getLocation(point)[axis] > medianLocation[axis]
+    );
+    if (rightPoints.length > 0) {
+      pointsListStack.push(rightPoints);
+      depthStack.push(currentDepth + 1);
+      isLeftStack.push(false);
+      parentStack.push(newNode);
+    }
+  }
+
+  return rootNode;
+}
+
 export function neighbourhood<V>(
   root: Node<V>,
   target: Vector,
@@ -51,7 +113,6 @@ export function neighbourhood<V>(
 
   const currentLocation = root.location;
   const axis = depth % 2;
-
   const axisDelta = target[axis] - currentLocation[axis];
 
   if (Math.abs(axisDelta) <= epsilon) {
@@ -74,6 +135,47 @@ export function neighbourhood<V>(
   }
 
   return neighbourhood(root.rightChild, target, epsilon, depth + 1);
+}
+
+export function iterativeNeighbourhood<V>(root: Node<V>, target: Vector, epsilon: number): V[] {
+  const depthStack = [0];
+  const stack = [root];
+  const neighbours: V[] = [];
+
+  while (stack.length > 0) {
+    const currentNode = stack.pop();
+    const currentDepth = depthStack.pop();
+    const currentLocation = currentNode.location;
+    const axis = currentDepth % 2;
+    const axisDelta = target[axis] - currentLocation[axis];
+
+    if (Math.abs(axisDelta) <= epsilon) {
+      if (currentNode.leftChild) {
+        stack.push(currentNode.leftChild);
+        depthStack.push(currentDepth + 1);
+      }
+      if (currentNode.rightChild) {
+        stack.push(currentNode.rightChild);
+        depthStack.push(currentDepth + 1);
+      }
+
+      if (isNeighbour(currentLocation, target, epsilon)) {
+        neighbours.push(currentNode.value);
+      }
+    } else if (axisDelta <= 0) {
+      if (currentNode.leftChild) {
+        stack.push(currentNode.leftChild);
+        depthStack.push(currentDepth + 1);
+      }
+    } else {
+      if (currentNode.rightChild) {
+        stack.push(currentNode.rightChild);
+        depthStack.push(currentDepth + 1);
+      }
+    }
+  }
+
+  return neighbours;
 }
 
 function isNeighbour(currentLocation: Vector, target: Vector, epsilon: number) {
